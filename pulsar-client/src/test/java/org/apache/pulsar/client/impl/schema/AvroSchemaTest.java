@@ -51,7 +51,6 @@ import org.apache.avro.reflect.Nullable;
 import org.apache.avro.reflect.ReflectData;
 import org.apache.pulsar.client.api.schema.RecordSchemaBuilder;
 import org.apache.pulsar.client.api.schema.SchemaBuilder;
-import org.apache.pulsar.client.api.schema.SchemaDefinitionBuilder;
 import org.apache.pulsar.client.api.schema.SchemaReader;
 import org.apache.pulsar.client.api.schema.SchemaWriter;
 import org.apache.pulsar.client.avro.generated.NasaMission;
@@ -123,6 +122,10 @@ public class AvroSchemaTest {
         long timestampMicros;
         @org.apache.avro.reflect.AvroSchema("{\"type\":\"long\",\"logicalType\":\"time-micros\"}")
         long timeMicros;
+    }
+
+    private static LocalTime truncateMillis(LocalTime t) {
+        return t.minusNanos(t.getNano() % 1000000);
     }
 
     @Test
@@ -286,7 +289,7 @@ public class AvroSchemaTest {
         schemaLogicalType.setDecimal(new BigDecimal("12.34"));
         schemaLogicalType.setDate(LocalDate.now());
         schemaLogicalType.setTimeMicros(System.currentTimeMillis()*1000);
-        schemaLogicalType.setTimeMillis(LocalTime.now());
+        schemaLogicalType.setTimeMillis(truncateMillis(LocalTime.now()));
 
         byte[] bytes1 = avroSchema.encode(schemaLogicalType);
         Assert.assertTrue(bytes1.length > 0);
@@ -294,7 +297,6 @@ public class AvroSchemaTest {
         SchemaLogicalType object1 = avroSchema.decode(bytes1);
 
         assertEquals(object1, schemaLogicalType);
-
     }
 
     @Test
@@ -306,7 +308,7 @@ public class AvroSchemaTest {
         schemaLogicalType.setTimestampMillis(new DateTime("2019-03-26T04:39:58.469Z", ISOChronology.getInstanceUTC()));
         schemaLogicalType.setDate(LocalDate.now());
         schemaLogicalType.setTimeMicros(System.currentTimeMillis()*1000);
-        schemaLogicalType.setTimeMillis(LocalTime.now());
+        schemaLogicalType.setTimeMillis(truncateMillis(LocalTime.now()));
 
         byte[] bytes1 = avroSchema.encode(schemaLogicalType);
         Assert.assertTrue(bytes1.length > 0);
